@@ -16,12 +16,12 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Ticket>> GetTickets(string? seatno = null)
+    public ActionResult<IEnumerable<Ticket>> GetTickets(string? SeatNo = null)
     {
         var query = _context.Tickets!.AsQueryable();
 
-        if (seatno != null)
-            query = query.Where(x => x.SeatNo != null && x.SeatNo.ToUpper().Contains(seatno.ToUpper()));
+        if (SeatNo != null)
+            query = query.Where(x => x.SeatNo != null && x.SeatNo.ToUpper().Contains(SeatNo.ToUpper()));
 
         return query.ToList();
     }
@@ -57,9 +57,19 @@ public class TicketsController : ControllerBase
     [HttpPost]
     public ActionResult<Ticket> PostTicket(Ticket ticket)
     {
-        var dbTicket = _context.Tickets!.Find(ticket.Id);
-        if (dbTicket == null)
+        var dbExercise = _context.Tickets!.Find(ticket.Id);
+        if (dbExercise == null)
         {
+            var existingSeatNo = _context.Tickets.FirstOrDefault(s => s.SeatNo == ticket.SeatNo);
+            
+            if (existingSeatNo != null)
+            {
+                return BadRequest();
+            }
+            if (ticket.Price < 0)
+            {
+                return BadRequest();
+            }
             _context.Add(ticket);
             _context.SaveChanges();
 
